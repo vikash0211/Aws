@@ -1,0 +1,53 @@
+# Put all the paths and location with respect to the current working directory i.e. <repo>/tools/hcloud/
+
+COMMON:
+    proxy:
+      http_proxy: ''
+      https_proxy: ''
+      ssh_proxy: ''
+
+AWS:
+
+    # Add/Edit/Update the Regions and Accounts before running the Automation
+    regions:
+      # - eu-central-1
+      # - eu-west-1
+      # - eu-west-2
+      # - eu-west-3
+
+    aws_accounts:
+        # - { account: '<Account_id>',  key_id: xxxx, key: xxxx, trusted: True}
+        # - { account: '<Account_id>',  key_id: xxxx, key: xxxx, trusted: True}
+
+    # Resources to be cleaned-up
+    resources:
+        s3_bucket:
+            all: False # If True, All the resources from AWS will be deleted, if False, resources will be selected based on following match
+            name: [] # Exact Name Match for Resources
+            filter: {ignore_case: True, name: ['test1', 'test2']} # Resource Name contains the Filter
+            exclude_name: ['ex_test_bucket'] # Exact Name will be excluded
+        iam:
+            all: False
+            name: ['test_role']
+            filter: {ignore_case: True, name: []}
+            exclude_name: []
+        resource_group:
+            all: False
+            name: []
+            filter: {ignore_case: True, name: ['test']}
+            exclude_name: []
+        load_balancer:
+            all: True
+            name: []
+            filter: {ignore_case: True, name: []}
+            exclude_name: []
+        ec2:
+            all: True
+            name: []
+            filter: {ignore_case: True, name: []}
+            exclude_name: []
+        stack:
+            all: False
+            name: ['MyStack1', 'MyStack2']
+            filter: {ignore_case: True, name: ['test']}
+            exclude_name: []
