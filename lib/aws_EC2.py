@@ -296,7 +296,7 @@ class EC2:
         for resource_type in self.resource_types:
             logger.info('Account: {} Region: {} - Cleaning {}'.format(self.aws.account, self.region, resource_type), To_Screen = True)
             all_names = self.get_Resource_List(resource_type)
-            name_list = all_names
+            name_list = all_names if resources else []
             if not resources.get('all'):
                 name_list = [k for k in all_names if k in resources.get('name', [])]
                 resource_filter = resources.get('filter', {})

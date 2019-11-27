@@ -35,7 +35,7 @@ class AWS_Lib:
         try:
             url = s3.upload_file(file_path, bucket_name, remote_file_name)
         except Exception as e:
-            logger.error('Issue in uploading Capic AMI Template: {}'.format(e), To_Screen = True)
+            logger.error('Issue in uploading Template: {}'.format(e), To_Screen = True)
             return False
 
         logger.info('Uploaded File S3 url: {}'.format(url), To_Screen = True)
@@ -320,6 +320,7 @@ class AWS_Lib:
         logger.info('ACCOUNT: {}'.format(self.aws.account), To_Screen = True)
 
         # EC2
+        s3_data = {}
         for region in regions:
             ec2_data = self.get_EC2Resources(region)
             ec2 = self.aws.get_EC2(region)
@@ -339,37 +340,52 @@ class AWS_Lib:
                         logger.error('      {}: {}'.format(resource_id, state[1]), To_Screen = True)
                         cleaned = False
 
-                if cleaned:
-                    logger.info('    {:40}: {:<20}'.format(resource_type, 'Cleaned UP'), To_Screen = True)
-                else:
-                    logger.info('    {:40}: {:<20}'.format(resource_type, 'Not Cleaned UP'), To_Screen = True)
+                if not cleaned:
+                    logger.error('    {:40}: {:<20}'.format(resource_type, 'Not Cleaned UP'), To_Screen = True)
                     result = False
+                else:
+                    logger.info('    {:40}: {:<20}'.format(resource_type, 'Cleaned UP'), To_Screen = True)
 
             if self.gov_cloud:
                 s3 = self.aws.get_S3(region = region)
-                s3_data = {}
-                s3_data['Bucket_List'] = s3.get_bucket_list(filters = 'capic')
+                if not s3_data.get('Bucket_List'):
+                    s3_data['Bucket_List'] = []
+                s3_data['Bucket_List'].extend(s3.get_bucket_list())
 
         # S3
         if not self.gov_cloud:
             s3 = self.aws.get_S3()
-            s3_data = {}
-            s3_data['Bucket_List'] = s3.get_bucket_list(filters = 'capic')
+            if not s3_data.get('Bucket_List'):
+                s3_data['Bucket_List'] = []
+            s3_data['Bucket_List'].extend(s3.get_bucket_list())
 
         for resource_type, resource_list in s3_data.items():
             if not resource_list:
                 logger.info('  {:40}: {:<20}'.format(resource_type, 'Cleaned UP'), To_Screen = True)
                 continue
 
-            print('  {}: '.format(resource_type))
-            for resource_id in resource_list:
+            s3_resources = resources.get('s3_bucket', {})
+            name_list = resource_list if s3_resources else []
+            if not s3_resources.get('all'):
+                name_list = [k for k in resource_list if k in s3_resources.get('name', [])]
+                resource_filter = s3_resources.get('filter', {})
+                for fltr in resource_filter.get('name', []):
+                    if not resource_filter.get('ignore_case'):
+                        name_list.extend([k for k in resource_list if fltr in k])
+                    else:
+                        name_list.extend([k for k in resource_list if fltr.lower() in k.lower()])
+                name_list = list(set(name_list))
+                name_list = [k for k in name_list if k not in s3_resources.get('exclude_name', [])]
+
+            cleaned = True
+            for resource_id in name_list:
                 logger.error('    {}'.format(resource_id), To_Screen = True)
                 cleaned = False
 
-            if cleaned:
-                logger.info('  {:40}: {:<20}'.format(resource_type, 'Cleaned UP'), To_Screen = True)
+            if not cleaned:
+                logger.error('  {:40}: {:<20}'.format(resource_type, 'Not Cleaned UP'), To_Screen = True)
+                result = False
             else:
-                logger.info('  {:40}: {:<20}'.format(resource_type, 'Not Cleaned UP'), To_Screen = True)
-                #result = False
+                logger.info('  {:40}: {:<20}'.format(resource_type, 'Cleaned UP'), To_Screen = True)
 
         return result

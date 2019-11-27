@@ -84,8 +84,10 @@ class Aws_Common:
 
     def aws_cleanup(self, regions = None):
 
+        logger.warning('-------------------------------------------------------------', To_Screen = True)
         logger.warning('WARNING: Specified AWS Resources will be DELETED Permanantly', To_Screen = True)
         logger.warning('Press ctrl+c Now if dont want to continue', To_Screen = True)
+        logger.warning('-------------------------------------------------------------', To_Screen = True)
         for i in range(11):
             logger.info('Continuing with AWS Clean-Up in: {} sec'.format(10 - i), To_Screen = True)
             time.sleep(1)

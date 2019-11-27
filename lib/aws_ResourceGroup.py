@@ -42,7 +42,7 @@ class ResourceGroup:
     def resource_cleanup(self, resources):
 
         all_names = self.list_groups()
-        name_list = all_names
+        name_list = all_names if resources else []
         if not resources.get('all'):
             name_list = [k for k in all_names if k in resources.get('name', [])]
             resource_filter = resources.get('filter', {})
